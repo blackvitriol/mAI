@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "A7 Server: Init",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\init.cmd",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "A7 Server: Boot",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\boot.cmd",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "A7 Server: Stop",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\stop.cmd",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "A7 Server: Restart",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\restart.cmd",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
