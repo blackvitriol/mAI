@@ -61,8 +61,7 @@ for %%c in (
     "a7_server_1-portainer"
     "a7_server_1-n8n"
     "a7_server_1-website"
-    "a7_server_1-browserless"
-    "a7_server_1-ollama"
+    "a7_server_1-lmstudio"
     "a7_server_1-openclaw-gateway"
 ) do (
     set "CNAME=%%~c"

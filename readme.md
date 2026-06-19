@@ -7,35 +7,73 @@ Docker-based home server stack. Services run in containers and are exposed on yo
 | Service | Purpose | Default port |
 |---------|---------|--------------|
 | **Portainer** | Main dashboard — manage containers, images, volumes | 9443 |
-| **n8n** | Workflow automation (uses PostgreSQL) | 5678 |
+| **n8n** | Workflow automation + AI agent | 5678 |
 | **PostgreSQL** | n8n database (internal only) | — |
-| **Ollama** | Local LLM inference | 11434 |
-| **OpenClaw** | AI agent gateway (uses Ollama) | 18789 |
+| **LM Studio** | Local LLM server (llmster, GPU) for OpenClaw | 1234 |
+| **OpenClaw** | AI agent gateway (uses LM Studio) | 18789 |
 | **Mail server** | Self-hosted mail (Mailcow or similar) | 25, 587, 993 |
 | **Website hosting** | Static sites / web apps via Nginx | 80, 443 |
 
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows)
-- NVIDIA GPU + drivers for Ollama (optional but recommended)
+- NVIDIA GPU + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) in Docker Desktop (for LM Studio)
 - CMD or PowerShell with admin rights when binding low ports
 
 ## Quick start
 
 ```cmd
 cd d:\A7Dev\Server
+```
+
+1. Edit `docker\.env` — set **`LM_STUDIO_MODELS_PATH`** to your models folder (e.g. `D:/LLM/models`)
+2. Run:
+
+```cmd
 init.cmd
 boot.cmd
 ```
 
-- **init.cmd** — first-time setup: folders, `.env`, pull images
-- **boot.cmd** — start **a7_server_1**, wait for health, ensure Ollama model, sync OpenClaw
+- **init.cmd** — folders, `.env`, pull images, build LM Studio GPU image
+- **boot.cmd** — start stack, health checks, sync OpenClaw config
 - **stop.cmd** — stop the full stack
 
-All containers belong to the **a7_server_1** system (shared network, labels, and naming).
-
 Open **Portainer**: `https://localhost:9443`  
-Open **OpenClaw**: `http://localhost:18789`
+Open **OpenClaw**: `http://localhost:18789`  
+LM Studio API: `http://localhost:1234`
+
+## LM Studio (GPU container, host models)
+
+Uses official [llmster](https://lmstudio.ai/docs/developer/core/headless) installed inside the container on first boot (picks the GPU bundle when NVIDIA is visible). OpenClaw connects per [LM Studio + OpenClaw](https://lmstudio.ai/docs/integrations/openclaw).
+
+In `docker\.env`:
+
+```env
+# Your models on the host (required)
+LM_STUDIO_MODELS_PATH=D:/LLM/models
+
+# llmster binary + config (container cache, in repo)
+LM_STUDIO_DATA_PATH=./lmstudio-data
+
+LM_STUDIO_MODEL_ID=qwen/qwen3.5-9b
+```
+
+Mounts:
+
+| Host | Container |
+|------|-----------|
+| `LM_STUDIO_MODELS_PATH` | `/root/.lmstudio/models` |
+| `LM_STUDIO_DATA_PATH` | `/root/.lmstudio` (bin, config) |
+
+Put GGUF / LM Studio model files in your host folder. First boot downloads llmster (~few min). Then load a model:
+
+```cmd
+docker exec -it a7_server_1-lmstudio lms ls
+docker exec -it a7_server_1-lmstudio lms load qwen/qwen3.5-9b --gpu max
+docker exec -it a7_server_1-lmstudio nvidia-smi
+```
+
+Requires `gpus: all` in compose and NVIDIA drivers on the host.
 
 ## Project layout
 
@@ -48,42 +86,33 @@ Server/
 ├── scripts/                      ← OpenClaw sync, health wait
 └── docker/
     ├── docker-compose.yml
-    ├── .env.example              ← copy to .env on first run (init.cmd does this)
+    ├── .env.example
+    ├── lmstudio-image/             ← GPU llmster Docker build
+    ├── lmstudio-data/              ← llmster install cache (gitignored)
     ├── portainer/
     ├── n8n/
     ├── postgres/
-    ├── ollama/                   ← LLM models (~7 GB)
-    ├── openclaw/                 ← config, workspace, secrets
-    ├── shared/                   ← cross-container file share
+    ├── openclaw/
+    ├── shared/
     ├── mail/
     └── www/
 ```
 
 ## Network: local LAN + internet
 
-### 1. Local network
+Published ports on your LAN:
 
-Published ports are reachable from other devices on your LAN:
-
-- `http://<your-pc-ip>:80` — website
-- `https://<your-pc-ip>:9443` — Portainer
 - `http://<your-pc-ip>:5678` — n8n
 - `http://<your-pc-ip>:18789` — OpenClaw
-- `http://<your-pc-ip>:11434` — Ollama API
-
-Find your PC IP:
+- `http://<your-pc-ip>:1234` — LM Studio API
 
 ```cmd
 ipconfig
 ```
 
-### 2. Internet access
+## n8n AI agent + browser (optional)
 
-Forward external ports to this machine’s LAN IP as needed. Prefer VPN or a reverse proxy with TLS for admin and AI services.
-
-### 3. GPU services
-
-Ollama benefits from `gpus: all` in Docker Desktop (WSL2 backend with NVIDIA Container Toolkit).
+Stock `n8nio/n8n`. Install `n8n-nodes-puppeteer` later via **Settings → Community Nodes** if you need browser tools.
 
 ## Common commands
 
@@ -94,23 +123,17 @@ init.cmd
 boot.cmd
 stop.cmd
 
-docker compose -f docker\docker-compose.yml logs -f
+docker compose -f docker\docker-compose.yml logs -f lmstudio
 docker compose -f docker\docker-compose.yml restart openclaw-gateway
-docker compose -f docker\docker-compose.yml --profile cli run openclaw-cli --help
 ```
 
 ## OpenClaw gateway token
 
 `init.cmd` generates `OPENCLAW_GATEWAY_TOKEN` in `docker\.env`. Paste it into OpenClaw Settings after first boot.
 
-## Mail server
-
-The compose file includes a placeholder for mail. Replace `docker/mail/` with your chosen stack and wire it in `docker-compose.yml`.
-
 ## Next steps
 
-1. Edit `docker\.env` — set `POSTGRES_PASSWORD` and review `OPENCLAW_GATEWAY_TOKEN`.
-2. Run `init.cmd` then `boot.cmd`.
-3. Complete Portainer setup at `https://localhost:9443`.
-4. Open OpenClaw at `http://localhost:18789` and enter the gateway token.
-5. Add site files under `docker\www\`.
+1. Set `LM_STUDIO_MODELS_PATH` and `LM_STUDIO_MODEL_ID` in `docker\.env`
+2. Run `init.cmd` then `boot.cmd`
+3. Load a model in LM Studio (see `lms load` above)
+4. Open OpenClaw at `http://localhost:18789`

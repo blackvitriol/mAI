@@ -33,16 +33,16 @@ if not exist "%COMPOSE_FILE%" (
 
 cd /d "%DOCKER_DIR%"
 
-echo [1/5] Creating data folders...
+echo [1/6] Creating data folders...
 for %%D in (
     portainer n8n postgres mail www
-    ollama shared
+    shared
     openclaw\config openclaw\workspace openclaw\secrets
 ) do (
     if not exist "%%D" mkdir "%%D"
 )
 
-echo [2/5] Checking environment file...
+echo [2/6] Checking environment file...
 if not exist ".env" (
     if exist ".env.example" (
         copy /y ".env.example" ".env" >nul
@@ -64,26 +64,55 @@ if "!NEED_TOKEN!"=="1" (
     echo       [OK]   Generated OPENCLAW_GATEWAY_TOKEN
 )
 
-findstr /r /c:"^OLLAMA_MODEL=" ".env" >nul 2>&1
+findstr /r /c:"^LM_STUDIO_MODEL_ID=" ".env" >nul 2>&1
 if errorlevel 1 (
-    echo OLLAMA_MODEL=qwen3.5:9b>> ".env"
-    echo       [OK]   Added default OLLAMA_MODEL=qwen3.5:9b
+    echo LM_STUDIO_MODEL_ID=qwen/qwen3.5-9b>> ".env"
+    echo       [OK]   Added default LM_STUDIO_MODEL_ID=qwen/qwen3.5-9b
 )
 
-echo [3/5] Pulling images for %A7_SYSTEM%...
-docker compose -f "%COMPOSE_FILE%" pull portainer postgres n8n website browserless ollama openclaw-gateway
+findstr /r /c:"^LM_STUDIO_MODELS_PATH=" ".env" >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Set LM_STUDIO_MODELS_PATH in docker\.env to your local models folder.
+    echo         Example: LM_STUDIO_MODELS_PATH=D:/LLM/models
+    exit /b 1
+)
+
+for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
+    if /i "%%a"=="LM_STUDIO_MODELS_PATH" set "LM_MODELS_PATH=%%b"
+)
+if not exist "!LM_MODELS_PATH!" (
+    echo [WARN] LM_STUDIO_MODELS_PATH does not exist: !LM_MODELS_PATH!
+    echo        Create the folder or update docker\.env before boot.
+)
+
+echo [3/6] Pulling images for %A7_SYSTEM%...
+docker compose -f "%COMPOSE_FILE%" pull portainer postgres website openclaw-gateway
 if errorlevel 1 (
     echo [ERROR] Failed to pull images.
     exit /b 1
 )
 
-echo [4/5] Syncing OpenClaw config...
+echo [4/7] Building n8n image (Puppeteer + Chrome cache)...
+docker compose -f "%COMPOSE_FILE%" build n8n
+if errorlevel 1 (
+    echo [ERROR] n8n image build failed.
+    exit /b 1
+)
+
+echo [5/7] Building LM Studio image (llmster + GPU)...
+docker compose -f "%COMPOSE_FILE%" build lmstudio
+if errorlevel 1 (
+    echo [ERROR] LM Studio image build failed.
+    exit /b 1
+)
+
+echo [6/7] Syncing OpenClaw config...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%scripts\sync-openclaw-token.ps1"
 if errorlevel 1 (
     echo [WARN] OpenClaw config sync skipped or failed. Run boot.cmd after fixing .env.
 )
 
-echo [5/5] Validating compose file...
+echo [7/7] Validating compose file...
 docker compose -f "%COMPOSE_FILE%" config --quiet
 if errorlevel 1 (
     echo [ERROR] docker-compose.yml validation failed.

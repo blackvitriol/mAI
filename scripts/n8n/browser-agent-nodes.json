@@ -1,0 +1,83 @@
+[
+  {
+    "parameters": {
+      "inputSource": "passthrough"
+    },
+    "type": "n8n-nodes-base.executeWorkflowTrigger",
+    "typeVersion": 1.2,
+    "position": [-224, -128],
+    "id": "d3f0495c-c304-46ab-a130-22aceca202a5",
+    "name": "When Executed by Another Workflow"
+  },
+  {
+    "parameters": {
+      "promptType": "define",
+      "options": {}
+    },
+    "type": "@n8n/n8n-nodes-langchain.agent",
+    "typeVersion": 3.1,
+    "position": [80, -144],
+    "id": "69eb54aa-729d-45ff-9773-d7eca953a942",
+    "name": "AI Agent"
+  },
+  {
+    "parameters": {
+      "model": {
+        "__rl": true,
+        "mode": "id",
+        "value": "gemma-4-e2b-it"
+      },
+      "responsesApiEnabled": false,
+      "builtInTools": {},
+      "options": {}
+    },
+    "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+    "typeVersion": 1.3,
+    "position": [-48, 80],
+    "id": "2280d516-e38e-42e2-b55a-42d67eafc732",
+    "name": "LM Studio Chat Model",
+    "credentials": {
+      "openAiApi": {
+        "id": "6KLyDsfzmztSxiCU",
+        "name": "LM Studio (Local)"
+      }
+    }
+  },
+  {
+    "parameters": {
+      "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', ``, 'string') }}",
+      "options": {}
+    },
+    "type": "n8n-nodes-puppeteer.puppeteerTool",
+    "typeVersion": 1,
+    "position": [160, 80],
+    "id": "ca6c9031-4fc1-4b2c-9b95-5b961af81345",
+    "name": "Read"
+  },
+  {
+    "parameters": {
+      "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', ``, 'string') }}",
+      "operation": "getScreenshot",
+      "fullPage": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Full_Page', ``, 'boolean') }}",
+      "options": {}
+    },
+    "type": "n8n-nodes-puppeteer.puppeteerTool",
+    "typeVersion": 1,
+    "position": [288, 80],
+    "id": "94989671-99f0-4cf9-a17f-8e3c8c6f5c95",
+    "name": "View"
+  },
+  {
+    "parameters": {
+      "operation": "runCustomScript",
+      "scriptCode": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Script_Code', ``, 'string') }}",
+      "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query__AI_Agent_Input_', ``, 'string') }}",
+      "options": {}
+    },
+    "type": "n8n-nodes-puppeteer.puppeteerTool",
+    "typeVersion": 1,
+    "position": [416, 80],
+    "id": "09406aec-6a1f-4558-bd3d-3b3ae3113119",
+    "name": "Write"
+  }
+]

@@ -1,0 +1,57 @@
+{
+  "When Executed by Another Workflow": {
+    "main": [
+      [
+        {
+          "node": "AI Agent",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "LM Studio Chat Model": {
+    "ai_languageModel": [
+      [
+        {
+          "node": "AI Agent",
+          "type": "ai_languageModel",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Read": {
+    "ai_tool": [
+      [
+        {
+          "node": "AI Agent",
+          "type": "ai_tool",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "View": {
+    "ai_tool": [
+      [
+        {
+          "node": "AI Agent",
+          "type": "ai_tool",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Write": {
+    "ai_tool": [
+      [
+        {
+          "node": "AI Agent",
+          "type": "ai_tool",
+          "index": 0
+        }
+      ]
+    ]
+  }
+}

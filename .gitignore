@@ -7,6 +7,5 @@ docker/portainer/
 docker/n8n/
 docker/postgres/
 docker/mail/
-docker/ollama/
 docker/openclaw/
 docker/shared/

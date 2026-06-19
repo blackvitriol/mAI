@@ -3,10 +3,13 @@
     "defaults": {
       "workspace": "/home/node/.openclaw/workspace",
       "model": {
-        "primary": "ollama/__OLLAMA_MODEL__"
+        "primary": "lmstudio/__LM_STUDIO_MODEL_ID__"
       },
       "models": {
-        "ollama/__OLLAMA_MODEL__": {}
+        "lmstudio/__LM_STUDIO_MODEL_ID__": {}
+      },
+      "memorySearch": {
+        "provider": "lmstudio"
       }
     }
   },
@@ -55,7 +58,7 @@
   },
   "plugins": {
     "entries": {
-      "ollama": {
+      "lmstudio": {
         "enabled": true
       }
     }
@@ -63,14 +66,17 @@
   "models": {
     "mode": "merge",
     "providers": {
-      "ollama": {
-        "baseUrl": "http://ollama:11434",
-        "api": "ollama",
-        "apiKey": "OLLAMA_API_KEY",
+      "lmstudio": {
+        "baseUrl": "http://lmstudio:1234/v1",
+        "apiKey": "__LM_API_TOKEN__",
+        "api": "openai-completions",
+        "params": {
+          "preload": false
+        },
         "models": [
           {
-            "id": "__OLLAMA_MODEL__",
-            "name": "__OLLAMA_MODEL__",
+            "id": "__LM_STUDIO_MODEL_ID__",
+            "name": "__LM_STUDIO_MODEL_ID__",
             "reasoning": false,
             "input": [
               "text"
@@ -81,7 +87,7 @@
               "cacheRead": 0,
               "cacheWrite": 0
             },
-            "contextWindow": 262144,
+            "contextWindow": 131072,
             "maxTokens": 8192,
             "compat": {
               "supportsTools": true,
@@ -94,8 +100,8 @@
   },
   "auth": {
     "profiles": {
-      "ollama:default": {
-        "provider": "ollama",
+      "lmstudio:default": {
+        "provider": "lmstudio",
         "mode": "api_key"
       }
     }
