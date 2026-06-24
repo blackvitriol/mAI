@@ -15,7 +15,7 @@ echo.
 
 docker ps --filter "name=a7_server_1-n8n" --format "{{.Names}}" | findstr /i "a7_server_1-n8n" >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] n8n container is not running. Run boot.cmd first.
+    echo [ERROR] n8n container is not running. Run startup.cmd first.
     exit /b 1
 )
 

@@ -4,3 +4,4 @@ postgres/
 mail/
 openclaw/
 shared/
+.a7-initialized

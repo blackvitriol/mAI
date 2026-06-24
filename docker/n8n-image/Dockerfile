@@ -1,4 +1,5 @@
-FROM node:22-bookworm-slim
+ARG NODE_IMAGE=node:22-bookworm-slim
+FROM ${NODE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -44,7 +45,8 @@ ARG N8N_VERSION=2.26.6
 RUN npm install -g "n8n@${N8N_VERSION}"
 
 COPY entrypoint.sh /entrypoint.sh
-RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
+COPY setup-deps.sh /setup-deps.sh
+RUN sed -i 's/\r$//' /entrypoint.sh /setup-deps.sh && chmod +x /entrypoint.sh /setup-deps.sh
 
 USER node
 WORKDIR /home/node

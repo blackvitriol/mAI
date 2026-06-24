@@ -17,9 +17,9 @@ networks:
 
 services:
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:${PORTAINER_VERSION:-2.39.3}
+    pull_policy: if_not_present
     container_name: a7_server_1-portainer
-    restart: unless-stopped
     networks:
       - a7_server_1
     ports:
@@ -34,9 +34,9 @@ services:
       com.a7.role: dashboard
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:${POSTGRES_VERSION:-16.8-alpine}
+    pull_policy: if_not_present
     container_name: a7_server_1-postgres
-    restart: unless-stopped
     networks:
       - a7_server_1
     environment:
@@ -60,10 +60,12 @@ services:
   n8n:
     build:
       context: ./n8n-image
-    image: a7_server_1-n8n:latest
-    pull_policy: build
+      args:
+        NODE_IMAGE: node:${NODE_VERSION:-22-bookworm-slim}
+        N8N_VERSION: ${N8N_VERSION:-2.26.6}
+    image: a7_server_1-n8n:${N8N_VERSION:-2.26.6}
+    pull_policy: never
     container_name: a7_server_1-n8n
-    restart: unless-stopped
     networks:
       - a7_server_1
     depends_on:
@@ -85,7 +87,7 @@ services:
       - DB_POSTGRESDB_USER=${POSTGRES_USER:-n8n}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
       - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
-      - N8N_REINSTALL_MISSING_PACKAGES=true
+      - N8N_REINSTALL_MISSING_PACKAGES=false
       - PUPPETEER_CACHE_DIR=/home/node/.n8n/puppeteer-cache
     volumes:
       - ./n8n:/home/node/.n8n
@@ -102,9 +104,9 @@ services:
       start_period: 45s
 
   website:
-    image: nginx:alpine
+    image: nginx:${NGINX_VERSION:-1.27.5-alpine}
+    pull_policy: if_not_present
     container_name: a7_server_1-website
-    restart: unless-stopped
     networks:
       - a7_server_1
     ports:
@@ -127,10 +129,11 @@ services:
   lmstudio:
     build:
       context: ./lmstudio-image
-    image: a7_server_1-lmstudio:latest
-    pull_policy: build
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
+    image: a7_server_1-lmstudio:${UBUNTU_VERSION:-22.04}
+    pull_policy: never
     container_name: a7_server_1-lmstudio
-    restart: unless-stopped
     networks:
       - a7_server_1
     ports:
@@ -162,9 +165,14 @@ services:
       start_period: 300s
 
   openclaw-gateway:
-    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    build:
+      context: ./openclaw-image
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-2026.5.4}
+    image: a7_server_1-openclaw:${OPENCLAW_VERSION:-2026.5.4}
+    pull_policy: never
     container_name: a7_server_1-openclaw-gateway
-    restart: unless-stopped
+    user: root
     networks:
       - a7_server_1
     depends_on:
@@ -187,6 +195,8 @@ services:
       TZ: ${TZ:-UTC}
     volumes:
       - ./openclaw/config:/home/node/.openclaw
+      - openclaw_state:/home/node/.openclaw/state
+      - openclaw_plugins:/home/node/.openclaw/agents/main/agent/plugins
       - ./openclaw/workspace:/home/node/.openclaw/workspace
       - ./openclaw/secrets:/home/node/.config/openclaw
       - ./shared:/shared
@@ -201,6 +211,7 @@ services:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
     init: true
+    entrypoint: ["/entrypoint.sh"]
     command:
       [
         "node",
@@ -230,10 +241,16 @@ services:
       start_period: 20s
 
   openclaw-cli:
-    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    build:
+      context: ./openclaw-image
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-2026.5.4}
+    image: a7_server_1-openclaw:${OPENCLAW_VERSION:-2026.5.4}
+    pull_policy: never
     container_name: a7_server_1-openclaw-cli
     profiles:
       - cli
+    user: root
     network_mode: "service:openclaw-gateway"
     env_file:
       - path: .env
@@ -256,13 +273,16 @@ services:
       TZ: ${TZ:-UTC}
     volumes:
       - ./openclaw/config:/home/node/.openclaw
+      - openclaw_state:/home/node/.openclaw/state
+      - openclaw_plugins:/home/node/.openclaw/agents/main/agent/plugins
       - ./openclaw/workspace:/home/node/.openclaw/workspace
       - ./openclaw/secrets:/home/node/.config/openclaw
       - ./shared:/shared
     stdin_open: true
     tty: true
     init: true
-    entrypoint: ["node", "dist/index.js"]
+    entrypoint: ["/entrypoint.sh"]
+    command: ["node", "dist/index.js"]
     depends_on:
       openclaw-gateway:
         condition: service_healthy
@@ -271,7 +291,6 @@ services:
   # mail:
   #   image: your-mail-image:tag
   #   container_name: a7_server_1-mail
-  #   restart: unless-stopped
   #   networks:
   #     - a7_server_1
   #   ports:
@@ -289,3 +308,7 @@ services:
 volumes:
   lmstudio_data:
     name: a7_server_1_lmstudio_data
+  openclaw_state:
+    name: a7_server_1_openclaw_state
+  openclaw_plugins:
+    name: a7_server_1_openclaw_plugins

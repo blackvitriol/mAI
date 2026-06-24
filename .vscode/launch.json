@@ -9,10 +9,10 @@
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "A7 Server: Boot",
+      "name": "A7 Server: Startup",
       "type": "node-terminal",
       "request": "launch",
-      "command": ".\\boot.cmd",
+      "command": ".\\startup.cmd",
       "cwd": "${workspaceFolder}"
     },
     {
@@ -20,13 +20,6 @@
       "type": "node-terminal",
       "request": "launch",
       "command": ".\\stop.cmd",
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "name": "A7 Server: Restart",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": ".\\restart.cmd",
       "cwd": "${workspaceFolder}"
     }
   ]

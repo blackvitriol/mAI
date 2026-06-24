@@ -31,12 +31,12 @@ cd d:\A7Dev\Server
 
 ```cmd
 init.cmd
-boot.cmd
+startup.cmd
 ```
 
-- **init.cmd** — folders, `.env`, pull images, build LM Studio GPU image
-- **boot.cmd** — start stack, health checks, sync OpenClaw config
-- **stop.cmd** — stop the full stack
+- **init.cmd** — first-time install only (folders, `.env`, images, n8n deps, OpenClaw config)
+- **startup.cmd** — start the server (`--no-build`, no installs)
+- **stop.cmd** — stop all containers
 
 Open **Portainer**: `https://localhost:9443`  
 Open **OpenClaw**: `http://localhost:18789`  
@@ -75,13 +75,27 @@ docker exec -it a7_server_1-lmstudio nvidia-smi
 
 Requires `gpus: all` in compose and NVIDIA drivers on the host.
 
+## Image versions
+
+Microservice images are pinned in `docker\.env` (see `.env.example`). Docker only pulls or builds when a pinned image is missing locally. To upgrade, bump the version in `.env`, then run `init.cmd --force`.
+
+| Variable | Default | Service |
+|----------|---------|---------|
+| `PORTAINER_VERSION` | `2.39.3` | Portainer CE |
+| `POSTGRES_VERSION` | `16.8-alpine` | PostgreSQL |
+| `NGINX_VERSION` | `1.27.5-alpine` | Website |
+| `N8N_VERSION` | `2.26.6` | n8n |
+| `NODE_VERSION` | `22-bookworm-slim` | n8n base image |
+| `UBUNTU_VERSION` | `22.04` | LM Studio base image |
+| `OPENCLAW_VERSION` | `2026.5.4` | OpenClaw |
+
 ## Project layout
 
 ```
 Server/
 ├── readme.md
 ├── init.cmd
-├── boot.cmd
+├── startup.cmd
 ├── stop.cmd
 ├── scripts/                      ← OpenClaw sync, health wait
 └── docker/
@@ -112,7 +126,7 @@ ipconfig
 
 ## n8n AI agent + browser (optional)
 
-Stock `n8nio/n8n`. Install `n8n-nodes-puppeteer` later via **Settings → Community Nodes** if you need browser tools.
+Stock custom n8n image. Community nodes and Puppeteer Chrome are installed once during `init.cmd`. After adding nodes in the UI, run `scripts\setup-n8n-deps.cmd`.
 
 ## Common commands
 
@@ -120,20 +134,21 @@ Stock `n8nio/n8n`. Install `n8n-nodes-puppeteer` later via **Settings → Commun
 cd d:\A7Dev\Server
 
 init.cmd
-boot.cmd
+startup.cmd
 stop.cmd
 
 docker compose -f docker\docker-compose.yml logs -f lmstudio
-docker compose -f docker\docker-compose.yml restart openclaw-gateway
 ```
 
 ## OpenClaw gateway token
 
-`init.cmd` generates `OPENCLAW_GATEWAY_TOKEN` in `docker\.env`. Paste it into OpenClaw Settings after first boot.
+`init.cmd` generates `OPENCLAW_GATEWAY_TOKEN` in `docker\.env`. `startup.cmd` opens the dashboard with that token pre-filled (via URL fragment, not logged server-side).
+
+To reopen later without the token prompt: `scripts\open-openclaw-dashboard.cmd`
 
 ## Next steps
 
 1. Set `LM_STUDIO_MODELS_PATH` and `LM_STUDIO_MODEL_ID` in `docker\.env`
-2. Run `init.cmd` then `boot.cmd`
+2. Run `init.cmd` then `startup.cmd`
 3. Load a model in LM Studio (see `lms load` above)
 4. Open OpenClaw at `http://localhost:18789`

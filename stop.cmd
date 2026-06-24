@@ -79,7 +79,7 @@ echo.
 echo ------------------------------------------------------------
 echo   %A7_SYSTEM% stop finished at %STOP_STAMP%
 echo.
-echo   Start again: boot.cmd
+echo   Start again: startup.cmd
 echo ------------------------------------------------------------
 echo.
 exit /b 0

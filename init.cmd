@@ -33,7 +33,18 @@ if not exist "%COMPOSE_FILE%" (
 
 cd /d "%DOCKER_DIR%"
 
-echo [1/6] Creating data folders...
+set "INIT_FORCE=0"
+if /i "%~1"=="--force" set "INIT_FORCE=1"
+if defined A7_INIT_FORCE set "INIT_FORCE=1"
+
+if exist ".a7-initialized" if "!INIT_FORCE!"=="0" (
+    echo [INFO] Already initialized.
+    echo        Run startup.cmd to start the server, or stop.cmd to shut it down.
+    echo        To pull/build images again, run: init.cmd --force
+    exit /b 0
+)
+
+echo [1/7] Creating data folders...
 for %%D in (
     portainer n8n postgres mail www
     shared
@@ -42,7 +53,7 @@ for %%D in (
     if not exist "%%D" mkdir "%%D"
 )
 
-echo [2/6] Checking environment file...
+echo [2/7] Checking environment file...
 if not exist ".env" (
     if exist ".env.example" (
         copy /y ".env.example" ".env" >nul
@@ -82,48 +93,53 @@ for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
 )
 if not exist "!LM_MODELS_PATH!" (
     echo [WARN] LM_STUDIO_MODELS_PATH does not exist: !LM_MODELS_PATH!
-    echo        Create the folder or update docker\.env before boot.
+    echo        Create the folder or update docker\.env before startup.
 )
 
-echo [3/6] Pulling images for %A7_SYSTEM%...
-docker compose -f "%COMPOSE_FILE%" pull portainer postgres website openclaw-gateway
+echo [3/7] Ensuring pinned images are local...
+set "COMPOSE_FILE=%COMPOSE_FILE%"
+set "DOCKER_DIR=%DOCKER_DIR%"
+call "%ROOT%scripts\ensure-images.cmd"
 if errorlevel 1 (
-    echo [ERROR] Failed to pull images.
+    echo [ERROR] Failed to ensure images.
     exit /b 1
 )
 
-echo [4/7] Building n8n image (Puppeteer + Chrome cache)...
-docker compose -f "%COMPOSE_FILE%" build n8n
-if errorlevel 1 (
-    echo [ERROR] n8n image build failed.
-    exit /b 1
+if "!INIT_FORCE!"=="1" (
+    echo       [FORCE] Rebuilding service images...
+    docker compose -f "%COMPOSE_FILE%" build n8n lmstudio openclaw-gateway
 )
 
-echo [5/7] Building LM Studio image (llmster + GPU)...
-docker compose -f "%COMPOSE_FILE%" build lmstudio
+echo [4/7] Setting up n8n dependencies (one-time)...
+if "!INIT_FORCE!"=="1" (
+    call "%ROOT%scripts\setup-n8n-deps.cmd" --force
+) else (
+    call "%ROOT%scripts\setup-n8n-deps.cmd"
+)
 if errorlevel 1 (
-    echo [ERROR] LM Studio image build failed.
-    exit /b 1
+    echo [WARN] n8n dependency setup skipped or failed.
 )
 
-echo [6/7] Syncing OpenClaw config...
+echo [5/7] Syncing OpenClaw config...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%scripts\sync-openclaw-token.ps1"
 if errorlevel 1 (
-    echo [WARN] OpenClaw config sync skipped or failed. Run boot.cmd after fixing .env.
+    echo [WARN] OpenClaw config sync skipped or failed. Run startup.cmd after fixing .env.
 )
 
-echo [7/7] Validating compose file...
+echo [6/7] Validating compose file...
 docker compose -f "%COMPOSE_FILE%" config --quiet
 if errorlevel 1 (
     echo [ERROR] docker-compose.yml validation failed.
     exit /b 1
 )
 
+echo initialized> ".a7-initialized"
+
 echo.
 echo Init complete for %A7_SYSTEM%.
 echo   Network  : %A7_SYSTEM%
 echo   Containers will be named: a7_server_1-^<service^>
 echo.
-echo Run boot.cmd to start the server.
+echo Run startup.cmd to start the server.
 echo.
 exit /b 0
