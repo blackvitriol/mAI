@@ -145,6 +145,11 @@ goto health_report
 :health_done
 echo       [OK]   Core containers report healthy or running.
 
+call "%ROOT%scripts\setup-openclaw-lmstudio.cmd"
+if errorlevel 1 (
+    echo       [WARN] OpenClaw LM Studio setup skipped or failed.
+)
+
 :health_report
 echo.
 echo [6/6] Container health report:

@@ -77,8 +77,8 @@ if "!NEED_TOKEN!"=="1" (
 
 findstr /r /c:"^LM_STUDIO_MODEL_ID=" ".env" >nul 2>&1
 if errorlevel 1 (
-    echo LM_STUDIO_MODEL_ID=qwen/qwen3.5-9b>> ".env"
-    echo       [OK]   Added default LM_STUDIO_MODEL_ID=qwen/qwen3.5-9b
+    echo LM_STUDIO_MODEL_ID=gemma-4-e2b-it>> ".env"
+    echo       [OK]   Added default LM_STUDIO_MODEL_ID=gemma-4-e2b-it
 )
 
 findstr /r /c:"^LM_STUDIO_MODELS_PATH=" ".env" >nul 2>&1

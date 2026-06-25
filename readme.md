@@ -55,7 +55,7 @@ LM_STUDIO_MODELS_PATH=D:/LLM/models
 # llmster binary + config (container cache, in repo)
 LM_STUDIO_DATA_PATH=./lmstudio-data
 
-LM_STUDIO_MODEL_ID=qwen/qwen3.5-9b
+LM_STUDIO_MODEL_ID=gemma-4-e2b-it
 ```
 
 Mounts:
@@ -69,7 +69,7 @@ Put GGUF / LM Studio model files in your host folder. First boot downloads llmst
 
 ```cmd
 docker exec -it a7_server_1-lmstudio lms ls
-docker exec -it a7_server_1-lmstudio lms load qwen/qwen3.5-9b --gpu max
+docker exec -it a7_server_1-lmstudio lms load gemma-4-e2b-it --gpu max
 docker exec -it a7_server_1-lmstudio nvidia-smi
 ```
 
@@ -138,6 +138,24 @@ startup.cmd
 stop.cmd
 
 docker compose -f docker\docker-compose.yml logs -f lmstudio
+```
+
+## OpenClaw + LM Studio
+
+OpenClaw is configured to use the Docker LM Studio service (`http://lmstudio:1234/v1`) with the model from `LM_STUDIO_MODEL_ID` in `docker\.env` (default: `gemma-4-e2b-it`).
+
+On first `startup.cmd`, OpenClaw runs non-interactive onboarding and sets memory search to `lmstudio`. To re-run:
+
+```cmd
+scripts\setup-openclaw-lmstudio.cmd --force
+```
+
+Ensure `LM_STUDIO_MODELS_PATH` points at your host models folder (e.g. `D:/AI Models`) and the model id matches `docker exec a7_server_1-lmstudio lms ls`.
+
+**OpenClaw vs n8n:** n8n sends short prompts; OpenClaw sends a large agent system prompt (~13k+ tokens). The model must be loaded with a large context — set `LM_STUDIO_CONTEXT_LENGTH=65536` in `.env` (default). If you see `n_ctx: 4096` errors in OpenClaw logs, reload:
+
+```cmd
+docker exec a7_server_1-lmstudio lms load gemma-4-e2b-it --gpu max --context-length 65536 -y
 ```
 
 ## OpenClaw gateway token

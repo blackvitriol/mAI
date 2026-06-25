@@ -60,11 +60,14 @@
     "entries": {
       "lmstudio": {
         "enabled": true
+      },
+      "ollama": {
+        "enabled": false
       }
     }
   },
   "models": {
-    "mode": "merge",
+    "mode": "replace",
     "providers": {
       "lmstudio": {
         "baseUrl": "http://lmstudio:1234/v1",

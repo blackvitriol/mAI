@@ -140,6 +140,9 @@ services:
       - "${LM_STUDIO_PORT:-1234}:1234"
     environment:
       LM_STUDIO_PORT: ${LM_STUDIO_PORT:-1234}
+      LM_STUDIO_MODEL_ID: ${LM_STUDIO_MODEL_ID:-gemma-4-e2b-it}
+      LM_STUDIO_GPU: ${LM_STUDIO_GPU:-max}
+      LM_STUDIO_CONTEXT_LENGTH: ${LM_STUDIO_CONTEXT_LENGTH:-65536}
       LMS_SERVER_HOST: 0.0.0.0
     volumes:
       - ${LM_STUDIO_MODELS_PATH}:/root/.lmstudio/models
@@ -191,7 +194,8 @@ services:
       OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
       OPENCLAW_DISABLE_BONJOUR: ${OPENCLAW_DISABLE_BONJOUR:-1}
-      LM_API_TOKEN: ${LM_API_TOKEN:-}
+      LM_API_TOKEN: ${LM_API_TOKEN:-lmstudio}
+      LM_STUDIO_MODEL_ID: ${LM_STUDIO_MODEL_ID:-gemma-4-e2b-it}
       TZ: ${TZ:-UTC}
     volumes:
       - ./openclaw/config:/home/node/.openclaw

@@ -21,6 +21,30 @@
       "request": "launch",
       "command": ".\\stop.cmd",
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "A7 GUI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "a7_gui",
+      "cwd": "${workspaceFolder}/gui",
+      "python": "${workspaceFolder}/gui/.venv/Scripts/python.exe",
+      "preLaunchTask": "gui: ensure venv",
+      "console": "integratedTerminal",
+      "env": {
+        "A7_SERVER_ROOT": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "A7 GUI (terminal)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gui\\run.cmd",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "gui: ensure venv",
+      "env": {
+        "A7_SERVER_ROOT": "${workspaceFolder}"
+      }
     }
   ]
 }

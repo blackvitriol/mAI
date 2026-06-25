@@ -12,6 +12,10 @@ if (-not (Test-Path $envFile)) {
     throw ".env not found. Run init.cmd first."
 }
 
+if (-not (Test-Path $templateFile)) {
+    throw "Template not found: $templateFile"
+}
+
 $envLines = Get-Content $envFile
 $tokenLine = $envLines | Where-Object { $_ -match '^\s*OPENCLAW_GATEWAY_TOKEN\s*=' } | Select-Object -First 1
 $modelLine = $envLines | Where-Object { $_ -match '^\s*LM_STUDIO_MODEL_ID\s*=' } | Select-Object -First 1
@@ -22,8 +26,12 @@ if (-not $tokenLine) {
 }
 
 $token = ($tokenLine -split '=', 2)[1].Trim()
-$model = if ($modelLine) { ($modelLine -split '=', 2)[1].Trim() } else { "qwen/qwen3.5-9b" }
+$model = if ($modelLine) { ($modelLine -split '=', 2)[1].Trim() } else { "gemma-4-e2b-it" }
 $apiToken = if ($apiTokenLine) { ($apiTokenLine -split '=', 2)[1].Trim() } else { "lmstudio" }
+
+if ([string]::IsNullOrWhiteSpace($apiToken)) {
+    $apiToken = "lmstudio"
+}
 
 if ([string]::IsNullOrWhiteSpace($token) -or $token -eq "change-me-to-a-random-token") {
     throw "OPENCLAW_GATEWAY_TOKEN is still the placeholder. Run init.cmd to generate one."
@@ -34,37 +42,18 @@ if (-not (Test-Path $configDir)) {
     New-Item -ItemType Directory -Path $configDir -Force | Out-Null
 }
 
-$created = $false
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-if (-not (Test-Path $configFile)) {
-    if (-not (Test-Path $templateFile)) {
-        throw "Template not found: $templateFile"
-    }
+$existed = Test-Path $configFile
 
-    $content = Get-Content $templateFile -Raw
-    $content = $content.Replace("__OPENCLAW_GATEWAY_TOKEN__", $token)
-    $content = $content.Replace("__LM_STUDIO_MODEL_ID__", $model)
-    $content = $content.Replace("__LM_API_TOKEN__", $apiToken)
-    [System.IO.File]::WriteAllText($configFile, $content, $utf8NoBom)
-    $created = $true
-    Write-Host "Created openclaw config from template."
-} else {
-    $content = Get-Content $configFile -Raw
-    $updated = $content
-    $updated = $updated -replace '"token"\s*:\s*"[^"]*"', "`"token`": `"$token`""
-    $updated = $updated -replace '"primary"\s*:\s*"lmstudio/[^"]+"', "`"primary`": `"lmstudio/$model`""
-    $updated = $updated -replace '"lmstudio/[^"]+"\s*:\s*\{\}', "`"lmstudio/$model`": {}"
-    $updated = $updated -replace '("id"\s*:\s*")[^"]+(")', "`${1}$model`${2}"
-    $updated = $updated -replace '("name"\s*:\s*")[^"]+(")', "`${1}$model`${2}"
-    $updated = $updated -replace '"apiKey"\s*:\s*"[^"]*"', "`"apiKey`": `"$apiToken`""
+$content = Get-Content $templateFile -Raw
+$content = $content.Replace("__OPENCLAW_GATEWAY_TOKEN__", $token)
+$content = $content.Replace("__LM_STUDIO_MODEL_ID__", $model)
+$content = $content.Replace("__LM_API_TOKEN__", $apiToken)
+[System.IO.File]::WriteAllText($configFile, $content, $utf8NoBom)
 
-    if ($updated -ne $content) {
-        [System.IO.File]::WriteAllText($configFile, $updated, $utf8NoBom)
-        Write-Host "Synced openclaw.json (token and/or model)."
-    }
-}
+Write-Host "Applied OpenClaw LM Studio config (model: lmstudio/$model)."
 
-if ($created) {
+if (-not $existed) {
     exit 2
 }
 

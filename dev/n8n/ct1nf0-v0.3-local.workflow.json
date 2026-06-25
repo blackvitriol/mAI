@@ -1,0 +1,75 @@
+{
+  "name": "CT1NF0 v0.3 Local",
+  "id": "hYCK2fbQ7Z3VmOfW",
+  "exportedAt": "2026-06-24",
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[
+        {"node": "RSS - Engadget", "type": "main", "index": 0},
+        {"node": "RSS - Google News", "type": "main", "index": 0},
+        {"node": "RSS - TechCrunch", "type": "main", "index": 0},
+        {"node": "RSS - TheVerge", "type": "main", "index": 0},
+        {"node": "RSS - TechRadar", "type": "main", "index": 0},
+        {"node": "RSS - TuringPost", "type": "main", "index": 0},
+        {"node": "RSS - TheSequence", "type": "main", "index": 0},
+        {"node": "RSS - SciTech Daily", "type": "main", "index": 0}
+      ]]
+    },
+    "RSS - Google News": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "RSS - Engadget": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "RSS - TechCrunch": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "RSS - TheVerge": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "RSS - TechRadar": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "Edit Fields": {"main": [[{"node": "Aggregate", "type": "main", "index": 0}]]},
+    "Aggregate": {"main": [[{"node": "News Parser English", "type": "main", "index": 0}]]},
+    "RSS - SciTech Daily": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "Translator - Arabic": {
+      "main": [[
+        {"node": "LinkedIn Post", "type": "main", "index": 0},
+        {"node": "Facebook Post", "type": "main", "index": 0},
+        {"node": "Instagram Create Media", "type": "main", "index": 0}
+      ]]
+    },
+    "News Parser English": {
+      "main": [[
+        {"node": "LinkedIn Post", "type": "main", "index": 0},
+        {"node": "Facebook Post", "type": "main", "index": 0},
+        {"node": "Translator - Arabic", "type": "main", "index": 0},
+        {"node": "Instagram Create Media", "type": "main", "index": 0}
+      ]]
+    },
+    "LM Studio Chat Model": {
+      "ai_languageModel": [[
+        {"node": "News Parser English", "type": "ai_languageModel", "index": 0},
+        {"node": "Translator - Arabic", "type": "ai_languageModel", "index": 0}
+      ]]
+    },
+    "Instagram Create Media": {
+      "main": [[{"node": "Instagram Publish", "type": "main", "index": 0}]]
+    }
+  },
+  "socialPosting": {
+    "linkedin": {
+      "node": "LinkedIn Post",
+      "organizationId": "103193372",
+      "credentialType": "linkedInCommunityManagementOAuth2Api"
+    },
+    "facebook": {
+      "node": "Facebook Post",
+      "pageId": "261073047099260",
+      "credentialType": "facebookGraphApi"
+    },
+    "instagram": {
+      "nodes": ["Instagram Create Media", "Instagram Publish"],
+      "businessAccountId": "REPLACE_WITH_IG_BUSINESS_ACCOUNT_ID",
+      "brandImageUrl": "https://REPLACE_WITH_PUBLIC_BRAND_IMAGE_URL",
+      "credentialType": "facebookGraphApi"
+    }
+  },
+  "nodes": []
+}
