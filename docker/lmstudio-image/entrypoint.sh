@@ -43,7 +43,10 @@ if [ -n "${MODEL_ID}" ]; then
     fi
     sleep 2
   done
-  echo "[lmstudio] Loading model ${MODEL_ID} (gpu=${GPU_MODE}, context=${CONTEXT_LENGTH})..."
+  echo "[lmstudio] Unloading stale models (daemon restores 4096 ctx otherwise)..."
+  lms unload --all -y 2>/dev/null || lms unload --all 2>/dev/null || true
+  sleep 2
+  echo "[lmstudio] Loading ${MODEL_ID} (gpu=${GPU_MODE}, context=${CONTEXT_LENGTH})..."
   if lms load "${MODEL_ID}" --gpu "${GPU_MODE}" --context-length "${CONTEXT_LENGTH}" -y; then
     echo "[lmstudio] Model ${MODEL_ID} loaded."
   else

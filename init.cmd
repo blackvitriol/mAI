@@ -81,6 +81,12 @@ if errorlevel 1 (
     echo       [OK]   Added default LM_STUDIO_MODEL_ID=gemma-4-e2b-it
 )
 
+findstr /r /c:"^LM_STUDIO_CONTEXT_LENGTH=" ".env" >nul 2>&1
+if errorlevel 1 (
+    echo LM_STUDIO_CONTEXT_LENGTH=65536>> ".env"
+    echo       [OK]   Added default LM_STUDIO_CONTEXT_LENGTH=65536
+)
+
 findstr /r /c:"^LM_STUDIO_MODELS_PATH=" ".env" >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Set LM_STUDIO_MODELS_PATH in docker\.env to your local models folder.

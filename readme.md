@@ -152,11 +152,7 @@ scripts\setup-openclaw-lmstudio.cmd --force
 
 Ensure `LM_STUDIO_MODELS_PATH` points at your host models folder (e.g. `D:/AI Models`) and the model id matches `docker exec a7_server_1-lmstudio lms ls`.
 
-**OpenClaw vs n8n:** n8n sends short prompts; OpenClaw sends a large agent system prompt (~13k+ tokens). The model must be loaded with a large context — set `LM_STUDIO_CONTEXT_LENGTH=65536` in `.env` (default). If you see `n_ctx: 4096` errors in OpenClaw logs, reload:
-
-```cmd
-docker exec a7_server_1-lmstudio lms load gemma-4-e2b-it --gpu max --context-length 65536 -y
-```
+**OpenClaw vs n8n:** n8n sends short prompts; OpenClaw sends a large agent system prompt (~13k+ tokens). Set `LM_STUDIO_CONTEXT_LENGTH=65536` in `docker\.env` (default). The lmstudio container unloads any restored session and reloads the model with that context on start.
 
 ## OpenClaw gateway token
 
