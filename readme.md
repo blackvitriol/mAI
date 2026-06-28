@@ -1,5 +1,7 @@
 # A7 Server (Docker)
 
+![A7 Server](.proj/server.webp)
+
 Docker-based home server stack. Services run in containers and are exposed on your local network and the internet.
 
 ## Services
